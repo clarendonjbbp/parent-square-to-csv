@@ -8,6 +8,8 @@
 *.so
 *.dylib
 /parent-square-to-csv
+/output.csv
+/.build/
 
 # Test binary, built with `go test -c`
 *.test

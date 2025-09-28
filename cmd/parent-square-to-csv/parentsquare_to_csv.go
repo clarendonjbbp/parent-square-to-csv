@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"regexp"
-	"syscall"
 	"strings"
+	"syscall"
 	"time"
 
 	"golang.org/x/term"
@@ -81,7 +81,7 @@ func main() {
 		log.Fatalf("Unable to read email: %v", err)
 	}
 	fmt.Print("Password: ")
-	password, err := term.ReadPassword(int(syscall.Stdin))
+	password, err := term.ReadPassword(syscall.Stdin)
 	if err != nil {
 		log.Fatalf("Unable to read password: %v", err)
 	}
@@ -108,7 +108,7 @@ func main() {
 	if resp.StatusCode != http.StatusOK {
 		log.Fatalf("Unexpected response code getting signin page: %v", resp.StatusCode)
 	}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func main() {
 	resp, err = client.PostForm(psURL+"/sessions", url.Values{
 		"authenticity_token": {matches[tokenIndex]},
 		"session[password]":  {string(password)},
-		"session[email]":     {string(email)},
+		"session[email]":     {email},
 		"commit":             {"Sign In"},
 	})
 	if err != nil {
@@ -132,7 +132,7 @@ func main() {
 	if resp.StatusCode != http.StatusOK {
 		log.Fatalf("Unexpected response code logging in to sessions page: %v", resp.StatusCode)
 	}
-	data, err = ioutil.ReadAll(resp.Body)
+	_, err = io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -144,7 +144,7 @@ func main() {
 	}
 
 	// Get list of students per class
-	buffer.WriteString("Name,Email,Email2,Group\n")
+	_, _ = buffer.WriteString("Name,Email,Email2,Group\n")
 	for _, class := range classes {
 		students, err := getPsStudentList(client, class.id)
 		if err != nil {
@@ -157,7 +157,7 @@ func main() {
 				log.Fatal(err)
 			}
 
-			buffer.WriteString(fmt.Sprintf("%s %s,%s,%s,%s\n", strings.ReplaceAll(student.Attributes.FirstName, "\"", "'"), student.Attributes.LastName, parentEmails[0], parentEmails[1], class.name))
+			fmt.Fprintf(buffer, "%s %s,%s,%s,%s\n", strings.ReplaceAll(student.Attributes.FirstName, "\"", "'"), student.Attributes.LastName, parentEmails[0], parentEmails[1], class.name)
 		}
 
 		buffer.Flush()
@@ -171,7 +171,7 @@ func getClassNames(client http.Client) ([]Class, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func getClassNames(client http.Client) ([]Class, error) {
 	re := regexp.MustCompile(`<a class="directory-menu-list-item " href="\/schools\/884\/users\?name=.*section=([0-9]*)">\n                  <span class="directory-menu-list-item-name">\n                    (.*)`)
 	matches := re.FindAllStringSubmatch(string(data), -1)
 
-	var classes []Class
+	classes := make([]Class, 0, len(matches))
 	for _, match := range matches {
 		if strings.Contains(match[2], "Volunteer Leaders") ||
 			strings.Contains(match[2], " All ") ||
@@ -203,7 +203,7 @@ func getPsStudentList(client http.Client, id string) ([]Student, error) {
 		return nil, err
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -258,10 +258,10 @@ func getPsURI(client http.Client, uri string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Unexpected response code getting \"%s\": %v", uri, resp.StatusCode)
+		return nil, fmt.Errorf("unexpected response code getting \"%s\": %v", uri, resp.StatusCode)
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
