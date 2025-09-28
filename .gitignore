@@ -7,6 +7,7 @@
 *.dll
 *.so
 *.dylib
+/parent-square-to-csv
 
 # Test binary, built with `go test -c`
 *.test
@@ -23,3 +24,9 @@ go.work.sum
 
 # env file
 .env
+
+# IDEs and editors
+*.swp
+*.swo
+
+.DS_Store
