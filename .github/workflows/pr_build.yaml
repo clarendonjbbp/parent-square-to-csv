@@ -1,0 +1,23 @@
+name: PR Build
+
+on:
+  pull_request:
+
+jobs:
+  pr-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run lint
+        run: make lint
+
+      - name: Run build
+        run: make build
