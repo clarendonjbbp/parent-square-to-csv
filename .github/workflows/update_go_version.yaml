@@ -18,7 +18,7 @@ jobs:
 
       - name: Update go.mod
         id: update
-        uses: faisal-memon/update-go-mod-action@main
+        uses: faisal-memon/update-go-mod-action@v1
 
       - name: Create pull request
         if: steps.update.outputs.changed == 'true'
