@@ -24,6 +24,7 @@ jobs:
         if: steps.update.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.PR_WORKFLOW_TOKEN }}
           commit-message: Update Go version to ${{ steps.update.outputs.latest-version }}
           title: Update Go version to ${{ steps.update.outputs.latest-version }}
           body: |
