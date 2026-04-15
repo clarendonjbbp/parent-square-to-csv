@@ -27,7 +27,7 @@ jobs:
           lint-major: "2"
           update-workflow-version: "true"
           update-version-file: "true"
-          version-file-path: .golangci-lint-version
+          version-file-path: .tool_versions
 
       - name: Run lint fix
         if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
@@ -46,6 +46,6 @@ jobs:
             This workflow may include:
             - a `go.mod` Go version update
             - golangci-lint workflow updates
-            - `.golangci-lint-version` updates
+            - `.tool_versions` updates
             - `make lint-fix` output after tooling changes
           branch: chore/update-go-tooling
