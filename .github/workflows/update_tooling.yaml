@@ -1,0 +1,51 @@
+name: Update Tooling
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * 1"
+
+jobs:
+  update-tooling:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Update go.mod
+        id: update-go
+        uses: faisal-memon/update-go-mod-action@v1
+
+      - name: Update golangci-lint references
+        id: update-lint
+        uses: faisal-memon/update-golangci-lint-action@v1
+        with:
+          lint-major: "2"
+          update-workflow-version: "true"
+          update-version-file: "true"
+          version-file-path: .tool_versions
+
+      - name: Run lint fix
+        if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
+        run: make lint-fix
+
+      - name: Create pull request
+        if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.PR_WORKFLOW_TOKEN }}
+          commit-message: Update Go tooling
+          title: Update Go tooling
+          body: |
+            Updates repository Go tooling.
+
+            This workflow may include:
+            - a `go.mod` Go version update
+            - golangci-lint workflow updates
+            - `.tool_versions` updates
+            - `make lint-fix` output after tooling changes
+          branch: chore/update-go-tooling
