@@ -66,14 +66,15 @@ jobs:
           awk 'NF { blank=0; print; next } !blank { print; blank=1 }' "$RUNNER_TEMP/pr_body.md" | sed '${/^$/d;}' > "$RUNNER_TEMP/pr_body.compact.md"
           mv "$RUNNER_TEMP/pr_body.compact.md" "$RUNNER_TEMP/pr_body.md"
         env:
-          GO_CHANGED: ${{ steps.update-go.outputs.changed }}
-          GO_PREVIOUS_VERSION: ${{ steps.update-go.outputs.previous-version }}
-          GO_CURRENT_VERSION: ${{ steps.update-go.outputs.current-version }}
-          LINT_CHANGED: ${{ steps.update-lint.outputs.changed }}
-          LINT_PREVIOUS_ACTION_VERSION: ${{ steps.update-lint.outputs.previous-action-version }}
-          LINT_CURRENT_ACTION_VERSION: ${{ steps.update-lint.outputs.current-action-version }}
-          LINT_PREVIOUS_VERSION: ${{ steps.update-lint.outputs.previous-lint-version }}
-          LINT_CURRENT_VERSION: ${{ steps.update-lint.outputs.current-lint-version }}
+          GO_CHANGED: "${{ steps.update-go.outputs.changed }}"
+          GO_PREVIOUS_VERSION: "${{ steps.update-go.outputs.previous-version }}"
+          GO_CURRENT_VERSION: "${{ steps.update-go.outputs.current-version }}"
+          LINT_CHANGED: "${{ steps.update-lint.outputs.changed }}"
+          LINT_PREVIOUS_ACTION_VERSION: "${{ steps.update-lint.outputs.previous-action-version }}"
+          LINT_CURRENT_ACTION_VERSION: "${{ steps.update-lint.outputs.current-action-version }}"
+          LINT_PREVIOUS_VERSION: "${{ steps.update-lint.outputs.previous-lint-version }}"
+          LINT_CURRENT_VERSION: "${{ steps.update-lint.outputs.current-lint-version }}"
+          PR_BODY_PATH: "${{ runner.temp }}/pr_body.md"
 
       - name: Create pull request
         if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
@@ -82,5 +83,5 @@ jobs:
           token: ${{ secrets.PR_WORKFLOW_TOKEN }}
           commit-message: Update Go tooling
           title: Update Go tooling
-          body-path: ${{ runner.temp }}/pr_body.md
+          body-path: "${{ runner.temp }}/pr_body.md"
           branch: chore/update-go-tooling
