@@ -36,33 +36,14 @@ jobs:
       - name: Build pull request body
         if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
         run: |
-          cat > pr_body.md <<EOF
-          Updates repository Go tooling.
-
-          Changes included in this PR:
-          EOF
-
-          if [ "${{ steps.update-go.outputs.changed }}" = "true" ]; then
-            cat >> pr_body.md <<EOF
-          - Go version: \`${{ steps.update-go.outputs.previous-version }}\` -> \`${{ steps.update-go.outputs.current-version }}\`
-          EOF
-          fi
-
-          if [ "${{ steps.update-lint.outputs.changed }}" = "true" ]; then
-            if [ -n "${{ steps.update-lint.outputs.previous-action-version }}" ] && [ -n "${{ steps.update-lint.outputs.current-action-version }}" ]; then
-              cat >> pr_body.md <<EOF
-          - golangci-lint-action: \`${{ steps.update-lint.outputs.previous-action-version }}\` -> \`${{ steps.update-lint.outputs.current-action-version }}\`
-          EOF
-            fi
-            if [ -n "${{ steps.update-lint.outputs.previous-lint-version }}" ] && [ -n "${{ steps.update-lint.outputs.current-lint-version }}" ]; then
-              cat >> pr_body.md <<EOF
-          - golangci-lint version: \`${{ steps.update-lint.outputs.previous-lint-version }}\` -> \`${{ steps.update-lint.outputs.current-lint-version }}\`
-          EOF
-            fi
-            cat >> pr_body.md <<EOF
-          - Applied \`make lint-fix\` after tooling updates
-          EOF
-          fi
+          envsubst < .github/update_tooling_pr_body.md.tmpl > "$RUNNER_TEMP/pr_body.md"
+          awk 'NF { blank=0; print; next } !blank { print; blank=1 }' "$RUNNER_TEMP/pr_body.md" | sed '${/^$/d;}' > "$RUNNER_TEMP/pr_body.compact.md"
+          mv "$RUNNER_TEMP/pr_body.compact.md" "$RUNNER_TEMP/pr_body.md"
+        env:
+          GO_VERSION_LINE: ${{ steps.update-go.outputs.changed == 'true' && format('- Go version: `{0}` -> `{1}`', steps.update-go.outputs.previous-version, steps.update-go.outputs.current-version) || '' }}
+          GOLANGCI_ACTION_LINE: ${{ steps.update-lint.outputs.previous-action-version != '' && steps.update-lint.outputs.current-action-version != '' && format('- golangci-lint-action: `{0}` -> `{1}`', steps.update-lint.outputs.previous-action-version, steps.update-lint.outputs.current-action-version) || '' }}
+          GOLANGCI_VERSION_LINE: ${{ steps.update-lint.outputs.previous-lint-version != '' && steps.update-lint.outputs.current-lint-version != '' && format('- golangci-lint version: `{0}` -> `{1}`', steps.update-lint.outputs.previous-lint-version, steps.update-lint.outputs.current-lint-version) || '' }}
+          LINT_FIX_LINE: ${{ steps.update-lint.outputs.changed == 'true' && '- Ran `make lint-fix` after tooling updates' || '' }}
 
       - name: Create pull request
         if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
@@ -71,5 +52,5 @@ jobs:
           token: ${{ secrets.PR_WORKFLOW_TOKEN }}
           commit-message: Update Go tooling
           title: Update Go tooling
-          body-path: pr_body.md
+          body-path: ${{ runner.temp }}/pr_body.md
           branch: chore/update-go-tooling
