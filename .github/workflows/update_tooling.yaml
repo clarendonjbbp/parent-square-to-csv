@@ -33,48 +33,20 @@ jobs:
         if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
         run: make lint-fix
 
-      - name: Build pull request body
+      - name: Render pull request body
         if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
-        run: |
-          go_version_line=""
-          golangci_action_line=""
-          golangci_version_line=""
-          lint_fix_line=""
-
-          if [ "$GO_CHANGED" = "true" ]; then
-            go_version_line="- Go version: \`$GO_PREVIOUS_VERSION\` -> \`$GO_CURRENT_VERSION\`"
-          fi
-
-          if [ -n "$LINT_PREVIOUS_ACTION_VERSION" ] && [ -n "$LINT_CURRENT_ACTION_VERSION" ]; then
-            golangci_action_line="- golangci-lint-action: \`$LINT_PREVIOUS_ACTION_VERSION\` -> \`$LINT_CURRENT_ACTION_VERSION\`"
-          fi
-
-          if [ -n "$LINT_PREVIOUS_VERSION" ] && [ -n "$LINT_CURRENT_VERSION" ]; then
-            golangci_version_line="- golangci-lint version: \`$LINT_PREVIOUS_VERSION\` -> \`$LINT_CURRENT_VERSION\`"
-          fi
-
-          if [ "$LINT_CHANGED" = "true" ]; then
-            lint_fix_line="- Ran \`make lint-fix\` after tooling updates"
-          fi
-
-          export GO_VERSION_LINE="$go_version_line"
-          export GOLANGCI_ACTION_LINE="$golangci_action_line"
-          export GOLANGCI_VERSION_LINE="$golangci_version_line"
-          export LINT_FIX_LINE="$lint_fix_line"
-
-          envsubst < .github/update_tooling_pr_body.md.tmpl > "$RUNNER_TEMP/pr_body.md"
-          awk 'NF { blank=0; print; next } !blank { print; blank=1 }' "$RUNNER_TEMP/pr_body.md" | sed '${/^$/d;}' > "$RUNNER_TEMP/pr_body.compact.md"
-          mv "$RUNNER_TEMP/pr_body.compact.md" "$RUNNER_TEMP/pr_body.md"
-        env:
-          GO_CHANGED: "${{ steps.update-go.outputs.changed }}"
-          GO_PREVIOUS_VERSION: "${{ steps.update-go.outputs.previous-version }}"
-          GO_CURRENT_VERSION: "${{ steps.update-go.outputs.current-version }}"
-          LINT_CHANGED: "${{ steps.update-lint.outputs.changed }}"
-          LINT_PREVIOUS_ACTION_VERSION: "${{ steps.update-lint.outputs.previous-action-version }}"
-          LINT_CURRENT_ACTION_VERSION: "${{ steps.update-lint.outputs.current-action-version }}"
-          LINT_PREVIOUS_VERSION: "${{ steps.update-lint.outputs.previous-lint-version }}"
-          LINT_CURRENT_VERSION: "${{ steps.update-lint.outputs.current-lint-version }}"
-          PR_BODY_PATH: "${{ runner.temp }}/pr_body.md"
+        uses: faisal-memon/version-update-pr-body@v1
+        with:
+          output_file: ${{ runner.temp }}/pr_body.md
+          go-changed: ${{ steps.update-go.outputs.changed }}
+          go-previous-version: ${{ steps.update-go.outputs.previous-version }}
+          go-current-version: ${{ steps.update-go.outputs.current-version }}
+          lint-changed: ${{ steps.update-lint.outputs.changed }}
+          lint-previous-action-version: ${{ steps.update-lint.outputs.previous-action-version }}
+          lint-current-action-version: ${{ steps.update-lint.outputs.current-action-version }}
+          lint-previous-version: ${{ steps.update-lint.outputs.previous-lint-version }}
+          lint-current-version: ${{ steps.update-lint.outputs.current-lint-version }}
+          lint-fix-ran: "true"
 
       - name: Create pull request
         if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
