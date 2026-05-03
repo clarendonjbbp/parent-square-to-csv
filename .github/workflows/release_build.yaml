@@ -1,0 +1,57 @@
+name: Release Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: Version segment to increment
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  release-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run lint
+        run: make lint
+
+      - name: Run build
+        run: make build
+
+      - name: Bump and write version tag
+        id: bump
+        uses: faisal-memon/semver-bump-action@v0.0.9
+        with:
+          version-bump: ${{ github.event_name == 'workflow_dispatch' && inputs.version_bump || '' }}
+          write-tag: "true"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.bump.outputs.new-tag }}
+          files: |
+            parent-square-to-csv
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
