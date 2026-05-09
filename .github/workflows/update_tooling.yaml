@@ -37,7 +37,7 @@ jobs:
         if: steps.update-go.outputs.changed == 'true' || steps.update-lint.outputs.changed == 'true'
         uses: faisal-memon/version-update-pr-body@v1
         with:
-          output_file: ${{ runner.temp }}/pr_body.md
+          output-file: ${{ runner.temp }}/pr_body.md
           go-changed: ${{ steps.update-go.outputs.changed }}
           go-previous-version: ${{ steps.update-go.outputs.previous-version }}
           go-current-version: ${{ steps.update-go.outputs.current-version }}
