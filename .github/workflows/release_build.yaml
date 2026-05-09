@@ -42,7 +42,7 @@ jobs:
 
       - name: Bump and write version tag
         id: bump
-        uses: faisal-memon/semver-bump-action@v0.0.9
+        uses: faisal-memon/simple-semver@v0.0.9
         with:
           version-bump: ${{ github.event_name == 'workflow_dispatch' && inputs.version_bump || '' }}
           write-tag: "true"
