@@ -42,10 +42,11 @@ jobs:
 
       - name: Bump and write version tag
         id: bump
-        uses: faisal-memon/simple-semver@v0.0.9
+        uses: faisal-memon/simple-semver@v0.0.15
         with:
           version-bump: ${{ github.event_name == 'workflow_dispatch' && inputs.version_bump || '' }}
           write-tag: "true"
+          github-token: ${{ github.token }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
