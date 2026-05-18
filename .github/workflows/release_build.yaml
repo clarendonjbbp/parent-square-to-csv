@@ -52,6 +52,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.bump.outputs.new-tag }}
+          generate_release_notes: true
           files: |
             parent-square-to-csv
         env:
