@@ -1,6 +1,6 @@
 module github.com/clarendonjbbp/parent-square-to-csv
 
-go 1.26.4
+go 1.26.5
 
 require golang.org/x/term v0.44.0
 
