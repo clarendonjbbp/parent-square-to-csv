@@ -9,6 +9,9 @@
 *.dylib
 /parent-square-to-csv
 /output.csv
+/parents.csv
+/.parentsquare.env
+/debug/
 /.build/
 
 # Test binary, built with `go test -c`
