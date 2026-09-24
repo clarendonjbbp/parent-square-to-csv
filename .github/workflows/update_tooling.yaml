@@ -40,7 +40,7 @@ jobs:
           output-file: ${{ runner.temp }}/pr_body.md
           go-changed: ${{ steps.update-go.outputs.changed }}
           go-previous-version: ${{ steps.update-go.outputs.previous-version }}
-          go-current-version: ${{ steps.update-go.outputs.current-version }}
+          go-current-version: ${{ steps.update-go.outputs.updated-version }}
           lint-changed: ${{ steps.update-lint.outputs.changed }}
           lint-previous-action-version: ${{ steps.update-lint.outputs.previous-action-version }}
           lint-current-action-version: ${{ steps.update-lint.outputs.current-action-version }}
